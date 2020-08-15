@@ -1,0 +1,35 @@
+version: "3.0"
+
+services:
+  ping:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - "./k6-ping-pong"
+      - "-ping"
+      - "-port"
+      - "8081"
+      - "-endpoint"
+      - "http://pong:8080/"
+  pong:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - "./k6-ping-pong"
+      - "-pong"
+      - "-port"
+      - "8080"
+  k6:
+    image: loadimpact/k6:0.27.1
+    depends_on:
+      - ping
+      - pong
+    volumes:
+      - ./run.js:/tmp/run.js
+    command:
+      - "run"
+      - "-e"
+      - "ENDPOINT=ping:8081"
+      - "/tmp/run.js"
